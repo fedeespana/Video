@@ -1,46 +1,29 @@
-import { Composition } from "remotion";
-import { HelloWorld, myCompSchema } from "./HelloWorld";
-import { Logo, myCompSchema2 } from "./HelloWorld/Logo";
+import { useState, useEffect } from "react";
+import { staticFile, interpolate, Audio } from "remotion";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 
-// Each <Composition> is an entry in the sidebar!
+const SPREADSHEET_ID = "PONÉ-AQUÍ-TU-ID";          // lo sacás de la URL del Sheet
+const SHEET_NAME = "Sheet1";
 
-export const RemotionRoot: React.FC = () => {
+export const RemotionVideo = () => {
+  const [text, setText] = useState("Cargando…");
+
+  useEffect(() => {
+    // Leemos la última fila (gratis, no necesita key)
+    fetch(
+      `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${SHEET_NAME}&tq=select%20A%20order%20by%20A%20desc%20limit%201`
+    )
+      .then((r) => r.text())
+      .then((t) => {
+        const json = JSON.parse(t.substr(47).slice(0, -2));
+        setText(json.table.rows[0].c[0].v);
+      });
+  }, []);
+
   return (
-    <>
-      <Composition
-        // You can take the "id" to render a video:
-        // npx remotion render src/index.ts <id> out/video.mp4
-        id="HelloWorld"
-        component={HelloWorld}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
-        schema={myCompSchema}
-        defaultProps={{
-          titleText: "Welcome to Remotion",
-          titleColor: "#000000",
-          logoColor1: "#91EAE4",
-          logoColor2: "#86A8E7",
-        }}
-      />
-
-      {/* Mount any React component to make it show up in the sidebar and work on it individually! */}
-      <Composition
-        id="OnlyLogo"
-        component={Logo}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        schema={myCompSchema2}
-        defaultProps={{
-          logoColor1: "#91dAE2" as const,
-          logoColor2: "#86A8E7" as const,
-        }}
-      />
-    </>
+    <div style={{ flex: 1, backgroundColor: "#111", justifyContent: "center", alignItems: "center" }}>
+      <h1 style={{ color: "white", fontSize: 80, textAlign: "center" }}>{text}</h1>
+      <Audio src="https://storage.googleapis.com/remotion-assets/tts.mp3" />
+    </div>
   );
 };
