@@ -1,0 +1,28 @@
+name: Render video
+on:
+  workflow_dispatch:          # botón manual
+    inputs:
+      fps:
+        description: "fps"
+        default: "30"
+        required: false
+      duration:
+        description: "duration in seconds"
+        default: "5"
+        required: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run build
+      - run: npm run render -- --fps=${{ github.event.inputs.fps }} --duration=${{ github.event.inputs.duration }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: out/video.mp4
